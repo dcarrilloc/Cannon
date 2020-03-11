@@ -1,9 +1,13 @@
 import org.newdawn.slick.*;
+import org.newdawn.slick.Graphics;
 
 public class Main {
+    static final int WIDTH = 800;
+    static final int HEIGHT = 600;
     public static void main(String[] args) throws SlickException {
-        CanonGame game = new CanonGame("Game");
-        AppGameContainer ap =  new AppGameContainer(game, 800, 600, false);
+        CanonGame cg = new CanonGame("New Game");
+        AppGameContainer ap =  new AppGameContainer(cg, WIDTH, HEIGHT, false);
+        ap.setTargetFrameRate(60);
         ap.start();
     }
 }
