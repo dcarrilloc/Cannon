@@ -68,6 +68,8 @@ class Ball {
     public void render() {
         this.ballImg.draw(55, 470);
     }
+
+
 }
 
 class Target {
@@ -154,8 +156,8 @@ class Cannon {
         }
     }
 
-    public void fire(){
-
+    public Ball fire(){
+        return new Ball();
     }
 
     public void updateRotation(double deltaRotation) {
