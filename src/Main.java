@@ -15,8 +15,8 @@ public class Main {
 }
 
 class CanonGame extends BasicGame {
-    UnicodeFont font;
     Ball ball;
+    UnicodeFont font;
     Target target;
     Landscape landscape;
     Cannon cannon;
@@ -29,7 +29,6 @@ class CanonGame extends BasicGame {
     @Override
     public void init(GameContainer gameContainer) throws SlickException {
         font = ResourceManager.getFont("WHITRABT.TTF", 30);
-        ball = new Ball();
         target = new Target();
         landscape = new Landscape();
         cannon = new Cannon();
@@ -38,38 +37,65 @@ class CanonGame extends BasicGame {
     // Aquesta funció s’encarrega de mantenir l’estat del joc.
     @Override
     public void update(GameContainer gameContainer, int i) throws SlickException {
+        Input input = gameContainer.getInput();
         cannon.update(gameContainer);
-        ball.update();
         target.update();
         landscape.update();
+        if(ball == null && input.isKeyDown(Input.KEY_SPACE)) {
+            ball = cannon.fire();
+        } else if(ball != null) {
+            ball.update();
+        }
     }
 
     // És el mètode on hi hem de posar el codi que dibuixarà cada frame del joc. El número de vegades
     // que s’invoca aquest mètode per segon determina el FPS.
     @Override
     public void render(GameContainer gameContainer, Graphics graphics) throws SlickException {
-        this.ball.render();
         this.landscape.render();
         this.target.render();
         this.cannon.render();
         this.font.drawString(100, 50, "Strength: " + (int) this.cannon.getStrength());
         this.font.drawString(400, 50, "Angle: " + (int) this.cannon.getRotation());
         this.font.drawString(700, 50, "Score: 00000");
+        if(ball != null) {
+            ball.render();
+        }
     }
 }
 
 class Ball {
     private final Image ballImg = ResourceManager.getImage("ball.png");
+    private double[] posicioInicial = {55, 470};
+    private double[] posicioActual = {0, 0};
+    private double angle;
+    private double velocitatInicial;
+    private double gravity = 4;
+    private double time = 0;
+
+    public Ball(double[] posicioInicial, double angle, double velocitatInicial) {
+        //this.posicioInicial = posicioInicial;
+        //this.posicioActual = posicioInicial;
+        this.angle = angle * Math.PI / 180f;
+        this.velocitatInicial = velocitatInicial;
+    }
 
     public void update() {
+        // Calcularem les velocitats horitzontal i vertical
+        double vx = velocitatInicial * Math.cos(angle);
+        double vy = (-1) * velocitatInicial * Math.sin(angle);
 
+        // Simularem el tir parabòlic amb els paràmetres anteriors
+        posicioActual[0] = posicioInicial[0] + vx * time;
+        posicioActual[1] = posicioInicial[1] + vy * time + gravity * time * time/2f;
+        time += 0.3;
     }
 
     public void render() {
-        this.ballImg.draw(55, 470);
+        if(posicioActual[0] != 0 && posicioActual[1] != 0) {
+            this.ballImg.draw((float) posicioActual[0], (float) posicioActual[1]);
+        }
     }
-
-
 }
 
 class Target {
@@ -137,8 +163,6 @@ class Cannon {
             updateStrength(1);
 
             System.out.println(getStrength());
-        } else if (input.isKeyPressed(Input.KEY_SPACE)) {
-            fire();
         }
     }
 
@@ -157,7 +181,7 @@ class Cannon {
     }
 
     public Ball fire(){
-        return new Ball();
+        return new Ball(new double[]{55, 470}, this.rotation, this.strength );
     }
 
     public void updateRotation(double deltaRotation) {
