@@ -45,6 +45,9 @@ class CanonGame extends BasicGame {
             ball = cannon.fire();
         } else if(ball != null) {
             ball.update();
+            if(ball.hasFallen()) {
+                ball = null;
+            }
         }
     }
 
@@ -66,6 +69,7 @@ class CanonGame extends BasicGame {
 
 class Ball {
     private final Image ballImg = ResourceManager.getImage("ball.png");
+    private Target target;
     private double[] posicioInicial = {55, 470};
     private double[] posicioActual = {0, 0};
     private double angle;
@@ -74,8 +78,6 @@ class Ball {
     private double time = 0;
 
     public Ball(double[] posicioInicial, double angle, double velocitatInicial) {
-        //this.posicioInicial = posicioInicial;
-        //this.posicioActual = posicioInicial;
         this.angle = angle * Math.PI / 180f;
         this.velocitatInicial = velocitatInicial;
     }
@@ -94,6 +96,19 @@ class Ball {
     public void render() {
         if(posicioActual[0] != 0 && posicioActual[1] != 0) {
             this.ballImg.draw((float) posicioActual[0], (float) posicioActual[1]);
+        }
+    }
+
+    public void setTarget(Target target) {
+        this.target = target;
+    }
+
+    public boolean hasFallen() {
+        if (posicioActual[1] > 576) {
+            System.out.println("Ha caigut");
+            return true;
+        } else {
+            return false;
         }
     }
 }
