@@ -1,5 +1,6 @@
 import org.newdawn.slick.*;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.geom.Rectangle;
 
 import java.util.Random;
 
@@ -7,7 +8,7 @@ public class Main {
     static final int WIDTH = 1024;
     static final int HEIGHT = 576;
     public static void main(String[] args) throws SlickException {
-        CanonGame cg = new CanonGame("Cannon Game");
+        CanonGame cg = new CanonGame("Cannon Game de Daniel Carrillo");
         AppGameContainer ap =  new AppGameContainer(cg, WIDTH, HEIGHT, false);
         ap.setTargetFrameRate(60);
         ap.start();
@@ -20,6 +21,10 @@ class CanonGame extends BasicGame {
     Target target;
     Landscape landscape;
     Cannon cannon;
+
+    private Rectangle ballRect, targetRect;
+    private int score = 0;
+    private int dispars = 5;
 
     public CanonGame(String title) {
         super(title);
@@ -40,13 +45,30 @@ class CanonGame extends BasicGame {
         Input input = gameContainer.getInput();
         cannon.update(gameContainer);
         target.update();
+        targetRect = new Rectangle((float) target.targetX + 300, 470, 130, 59);
         landscape.update();
         if(ball == null && input.isKeyDown(Input.KEY_SPACE)) {
             ball = cannon.fire();
+            ballRect = new Rectangle((float) ball.posicioInicial[0], (float) ball.posicioInicial[1], 40, 40);
         } else if(ball != null) {
             ball.update();
+            ballRect.setX((float) ball.posicioActual[0]);
+            ballRect.setY((float) ball.posicioActual[1]);
             if(ball.hasFallen()) {
+                if(score > 0 && score <= 30) {
+                    score = 0;
+                } else if (score > 30) {
+                    score -= 30;
+                }
                 ball = null;
+                ballRect = null;
+                target = null;
+                target = new Target();
+            } else if (ballRect.intersects(targetRect)) {
+                score += 100;
+                target = null;
+                ball = null;
+                target = new Target();
             }
         }
     }
@@ -60,7 +82,7 @@ class CanonGame extends BasicGame {
         this.cannon.render();
         this.font.drawString(100, 50, "Strength: " + (int) this.cannon.getStrength());
         this.font.drawString(400, 50, "Angle: " + (int) this.cannon.getRotation());
-        this.font.drawString(700, 50, "Score: 00000");
+        this.font.drawString(700, 50, "Score: " + score);
         if(ball != null) {
             ball.render();
         }
@@ -70,8 +92,8 @@ class CanonGame extends BasicGame {
 class Ball {
     private final Image ballImg = ResourceManager.getImage("ball.png");
     private Target target;
-    private double[] posicioInicial = {55, 470};
-    private double[] posicioActual = {0, 0};
+    public double[] posicioInicial = {55, 470};
+    public double[] posicioActual = {0, 0};
     private double angle;
     private double velocitatInicial;
     private double gravity = 4;
@@ -116,7 +138,7 @@ class Ball {
 class Target {
     private final Image targetImg = ResourceManager.getImage("target.png");
     Random r = new Random();
-    private double targetX = r.nextInt(700 - 130);
+    public double targetX = r.nextInt(700 - 130);
 
     public void update() {
 
@@ -164,20 +186,12 @@ class Cannon {
         Input input = gameContainer.getInput();
         if(input.isKeyDown(Input.KEY_DOWN)) {
             updateStrength(-1);
-
-            System.out.println(getStrength());
         } else if(input.isKeyDown(Input.KEY_LEFT)) {
             updateRotation(1);
-
-            System.out.println(getRotation());
         } else if (input.isKeyDown(Input.KEY_RIGHT)) {
             updateRotation(-1);
-
-            System.out.println(getRotation());
         } else if (input.isKeyDown(Input.KEY_UP)) {
             updateStrength(1);
-
-            System.out.println(getStrength());
         }
     }
 
