@@ -16,6 +16,8 @@ public class Main {
 }
 
 class CanonGame extends BasicGame {
+    private byte gameState = 0;
+
     Ball ball;
     UnicodeFont font;
     Target target;
@@ -25,6 +27,7 @@ class CanonGame extends BasicGame {
     private Rectangle ballRect, targetRect;
     private int score = 0;
     private int dispars = 5;
+    private int disparsConsecutius = 0;
 
     public CanonGame(String title) {
         super(title);
@@ -43,32 +46,51 @@ class CanonGame extends BasicGame {
     @Override
     public void update(GameContainer gameContainer, int i) throws SlickException {
         Input input = gameContainer.getInput();
-        cannon.update(gameContainer);
-        target.update();
-        targetRect = new Rectangle((float) target.targetX + 300, 470, 130, 59);
-        landscape.update();
-        if(ball == null && input.isKeyDown(Input.KEY_SPACE)) {
-            ball = cannon.fire();
-            ballRect = new Rectangle((float) ball.posicioInicial[0], (float) ball.posicioInicial[1], 40, 40);
-        } else if(ball != null) {
-            ball.update();
-            ballRect.setX((float) ball.posicioActual[0]);
-            ballRect.setY((float) ball.posicioActual[1]);
-            if(ball.hasFallen()) {
-                if(score > 0 && score <= 30) {
-                    score = 0;
-                } else if (score > 30) {
-                    score -= 30;
+
+        if (gameState == 0) {
+            System.out.println("Pantalla de càrrega");
+            if(input.isKeyDown(Input.KEY_ENTER)) {
+                gameState = 1;
+            }
+        } else if (gameState == 1) {
+            System.out.println("Pantalla del joc");
+            cannon.update(gameContainer);
+            target.update();
+            targetRect = new Rectangle((float) target.targetX + 300, 470, 130, 59);
+            landscape.update();
+            if(ball == null && input.isKeyDown(Input.KEY_SPACE)) {
+                ball = cannon.fire();
+                ballRect = new Rectangle((float) ball.posicioInicial[0], (float) ball.posicioInicial[1], 40, 40);
+            } else if(ball != null) {
+                ball.update();
+                ballRect.setX((float) ball.posicioActual[0]);
+                ballRect.setY((float) ball.posicioActual[1]);
+                if(ball.hasFallen()) {
+                    if(score > 0 && score <= 30) {
+                        score = 0;
+                    } else if (score > 30) {
+                        score -= 30;
+                    }
+                    disparsConsecutius--;
+                    dispars--;
+                    ball = null;
+                    ballRect = null;
+                    target = null;
+                    target = new Target();
+                } else if (ballRect.intersects(targetRect)) {
+                    score += 100;
+                    disparsConsecutius ++;
+                    target = null;
+                    ball = null;
+                    target = new Target();
                 }
-                ball = null;
-                ballRect = null;
-                target = null;
-                target = new Target();
-            } else if (ballRect.intersects(targetRect)) {
-                score += 100;
-                target = null;
-                ball = null;
-                target = new Target();
+            }
+            if (disparsConsecutius == 3) {
+                dispars++;
+                disparsConsecutius = 0;
+            }
+            if (dispars == 0) {
+                gameState = 2;
             }
         }
     }
@@ -78,13 +100,21 @@ class CanonGame extends BasicGame {
     @Override
     public void render(GameContainer gameContainer, Graphics graphics) throws SlickException {
         this.landscape.render();
-        this.target.render();
-        this.cannon.render();
-        this.font.drawString(100, 50, "Strength: " + (int) this.cannon.getStrength());
-        this.font.drawString(400, 50, "Angle: " + (int) this.cannon.getRotation());
-        this.font.drawString(700, 50, "Score: " + score);
-        if(ball != null) {
-            ball.render();
+        if (gameState == 0) {
+            this.font.drawString(300, 288, "Presioni la tecla ENTER!");
+        } else if (gameState == 1) {
+            this.target.render();
+            this.cannon.render();
+            this.font.drawString(100, 50, "Strength: " + (int) this.cannon.getStrength());
+            this.font.drawString(400, 50, "Angle: " + (int) this.cannon.getRotation());
+            this.font.drawString(700, 50, "Score: " + score);
+            this.font.drawString(700, 100, "Vides: " + dispars);
+            if(ball != null) {
+                ball.render();
+            }
+        } else {
+            this.font.drawString(330, 288, "Ha finalitzat el joc!");
+            this.font.drawString(220, 320, "La teva puntuacio ha estat de: " + score);
         }
     }
 }
@@ -127,7 +157,6 @@ class Ball {
 
     public boolean hasFallen() {
         if (posicioActual[1] > 576) {
-            System.out.println("Ha caigut");
             return true;
         } else {
             return false;
