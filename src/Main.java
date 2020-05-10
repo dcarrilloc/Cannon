@@ -47,17 +47,17 @@ class CanonGame extends BasicGame {
     public void update(GameContainer gameContainer, int i) throws SlickException {
         Input input = gameContainer.getInput();
 
+        // Pantalla de càrrega
         if (gameState == 0) {
-            System.out.println("Pantalla de càrrega");
             if(input.isKeyDown(Input.KEY_ENTER)) {
                 gameState = 1;
             }
+          // Pantalla del joc
         } else if (gameState == 1) {
-            System.out.println("Pantalla del joc");
             cannon.update(gameContainer);
-            target.update();
             targetRect = new Rectangle((float) target.targetX + 300, 470, 130, 59);
             landscape.update();
+            // Es dispara el canó
             if(ball == null && input.isKeyDown(Input.KEY_SPACE)) {
                 ball = cannon.fire();
                 ballRect = new Rectangle((float) ball.posicioInicial[0], (float) ball.posicioInicial[1], 40, 40);
@@ -65,6 +65,7 @@ class CanonGame extends BasicGame {
                 ball.update();
                 ballRect.setX((float) ball.posicioActual[0]);
                 ballRect.setY((float) ball.posicioActual[1]);
+                // Si la pilota no encerta l'ojectiu
                 if(ball.hasFallen()) {
                     if(score > 0 && score <= 30) {
                         score = 0;
@@ -77,6 +78,7 @@ class CanonGame extends BasicGame {
                     ballRect = null;
                     target = null;
                     target = new Target();
+                  // Si la pilota encerta l'objectiu
                 } else if (ballRect.intersects(targetRect)) {
                     score += 100;
                     disparsConsecutius ++;
@@ -134,6 +136,7 @@ class Ball {
         this.velocitatInicial = velocitatInicial;
     }
 
+    // Mètode per calcular la paràbola de la bolla
     public void update() {
         // Calcularem les velocitats horitzontal i vertical
         double vx = velocitatInicial * Math.cos(angle);
@@ -145,6 +148,7 @@ class Ball {
         time += 0.3;
     }
 
+    // Mètode per dibuixar per pantalla la bolla
     public void render() {
         if(posicioActual[0] != 0 && posicioActual[1] != 0) {
             this.ballImg.draw((float) posicioActual[0], (float) posicioActual[1]);
@@ -155,6 +159,7 @@ class Ball {
         this.target = target;
     }
 
+    // Mètode que retorna TRUE si la pilota ha caigut i FALSE si no
     public boolean hasFallen() {
         if (posicioActual[1] > 576) {
             return true;
@@ -169,10 +174,7 @@ class Target {
     Random r = new Random();
     public double targetX = r.nextInt(700 - 130);
 
-    public void update() {
-
-    }
-
+    // Mètode per dibuixar per pantalla l'objectiu
     public void render() {
         this.targetImg.draw((float) ((float) 300 + targetX), 470);
     }
@@ -184,6 +186,7 @@ class Landscape {
     private boolean endavant = true;
     private int cloudX = 30;
 
+    // Mètode que s'encarrega de modificar les condicions del fons del joc.
     public void update() {
         if (endavant) {
             cloudX += 1;
@@ -198,6 +201,7 @@ class Landscape {
         }
     }
 
+    // Mètode que s'encarrega de dibuixar per pantalla el fons del joc
     public void render() {
         this.landscapeImg.draw(0, 0);
         this.cloudImg.draw(cloudX, 100);
@@ -211,6 +215,8 @@ class Cannon {
     private double strength = 5;
     private double rotationBefore;
 
+    // Recopila la informació obtinguda a través de les tecles del joc
+    // per canviar la rotació o la força, i la envia segons pertoqui
     public void update(GameContainer gameContainer) {
         Input input = gameContainer.getInput();
         if(input.isKeyDown(Input.KEY_DOWN)) {
@@ -224,6 +230,7 @@ class Cannon {
         }
     }
 
+    // S'encarrega de dibuixar per pantalla el canó
     public void render() {
         this.cannonImg.draw(45, 450);
         this.cannonBaseImg.draw(48, 470);
@@ -242,6 +249,7 @@ class Cannon {
         return new Ball(new double[]{55, 470}, this.rotation, this.strength );
     }
 
+    // Mètode encarregat de modificar la rotació del canó
     public void updateRotation(double deltaRotation) {
         this.rotationBefore = rotation;
         rotation += deltaRotation;
@@ -252,6 +260,7 @@ class Cannon {
         }
     }
 
+    // Mètode encarregat de modificar la força del canó
     public void updateStrength(double deltaStrength) {
         strength += deltaStrength;
         if (getStrength() > 100) {
